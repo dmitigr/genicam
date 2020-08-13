@@ -21,8 +21,11 @@
 // dmitigr@gmail.com
 
 #include <GxIAPI.h>
+#include <DxImageProc.h>
 
 #include <cstdint>
+#include <memory>
+#include <new>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -67,6 +70,50 @@ inline auto call(F&& f, Types&& ... args)
   throw_if_last_error();
   return result;
 }
+
+namespace img {
+
+inline void throw_if_error(const VxInt32 s)
+{
+  switch (s) {
+  case DX_OK: return;
+  case DX_PARAMETER_INVALID:
+    throw std::runtime_error{"invalid input parameter"};
+  case DX_PARAMETER_OUT_OF_BOUND:
+    throw std::runtime_error{"the parameter is out of bound"};
+  case DX_NOT_ENOUGH_SYSTEM_MEMORY:
+    throw std::bad_alloc{};
+  case DX_NOT_FIND_DEVICE:
+    throw std::runtime_error{"no device found"};
+  case DX_STATUS_NOT_SUPPORTED:
+    throw std::runtime_error{"the format is not supported"};
+  case DX_CPU_NOT_SUPPORT_ACCELERATE:
+    throw std::runtime_error{"the CPU does not support acceleration"};
+  default:
+    throw std::runtime_error{"unknown error"};
+  }
+}
+
+template<typename F, typename ... Types>
+inline void call(F&& f, Types&& ... args)
+{
+  throw_if_error(f(std::forward<Types>(args)...));
+}
+
+inline std::unique_ptr<unsigned char[]> raw8_to_rgb24(
+  void* const input,
+  const std::uint32_t width,
+  const std::uint32_t height,
+  const DX_BAYER_CONVERT_TYPE conversion_type,
+  const DX_PIXEL_COLOR_FILTER bayer_layout,
+  const bool flip = false)
+{
+  std::unique_ptr<unsigned char[]> result{new unsigned char[width * height * 3]};
+  call(DxRaw8toRGB24, input, result.get(), width, height, conversion_type, bayer_layout, flip);
+  return result;
+}
+
+} // namespace img
 
 } // namespace dmitigr::genicam::daheng::gx
 
