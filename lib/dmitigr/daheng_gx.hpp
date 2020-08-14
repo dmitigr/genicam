@@ -23,6 +23,7 @@
 #include <GxIAPI.h>
 #include <DxImageProc.h>
 
+#include <algorithm>
 #include <chrono>
 #include <cstdint>
 #include <memory>
@@ -110,9 +111,27 @@ public:
   Device& operator=(const Device&) = delete;
 
   /// Move-constructible.
-  Device(Device&&) = default;
+  Device(Device&& rhs) noexcept
+    : handle_{rhs.handle_}
+  {
+    rhs.handle_ = {};
+  }
+
   /// Move-assignable.
-  Device& operator=(Device&&) = default;
+  Device& operator=(Device&& rhs) noexcept
+  {
+    if (this != &rhs) {
+      Device tmp{std::move(rhs)};
+      swap(tmp);
+    }
+    return *this;
+  }
+
+  /// The swap operation.
+  void swap(Device& other) noexcept
+  {
+    std::swap(handle_, other.handle_);
+  }
 
   /// The constructor.
   explicit Device(GX_DEV_HANDLE handle = {})
@@ -167,6 +186,16 @@ public:
     GXUnregisterCaptureCallback(handle_);
     call(GXCloseDevice, handle_);
     handle_ = {};
+  }
+
+  /// Closes the device.
+  bool close_nothrow() noexcept
+  {
+    auto s = GXStreamOff(handle_);
+    s |= GXUnregisterCaptureCallback(handle_);
+    s |= GXCloseDevice(handle_);
+    handle_ = {};
+    return s == GX_STATUS_SUCCESS;
   }
 
   /// @name Settings
