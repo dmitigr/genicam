@@ -98,11 +98,7 @@ public:
   /// The destructor.
   ~Device()
   {
-    if (handle_) {
-      GXStreamOff(handle_);
-      GXUnregisterCaptureCallback(handle_);
-      GXCloseDevice(handle_);
-    }
+    close_nothrow();
   }
 
   /// Non copy-constructible.
@@ -188,14 +184,21 @@ public:
     handle_ = {};
   }
 
-  /// Closes the device.
+  /**
+   * Closes the device.
+   *
+   * @returns `true` on success, or `false` otherwise.
+   */
   bool close_nothrow() noexcept
   {
-    auto s = GXStreamOff(handle_);
-    s |= GXUnregisterCaptureCallback(handle_);
-    s |= GXCloseDevice(handle_);
-    handle_ = {};
-    return s == GX_STATUS_SUCCESS;
+    if (handle_) {
+      auto s = GXStreamOff(handle_);
+      s |= GXUnregisterCaptureCallback(handle_);
+      s |= GXCloseDevice(handle_);
+      handle_ = {};
+      return (s == GX_STATUS_SUCCESS);
+    } else
+      return true;
   }
 
   /// @name Settings
