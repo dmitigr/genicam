@@ -24,6 +24,8 @@
 #include <DxImageProc.h>
 
 #include <algorithm>
+#include <atomic>
+#include <cassert>
 #include <chrono>
 #include <cstdint>
 #include <memory>
@@ -88,6 +90,114 @@ inline std::uint32_t update_device_list(const std::chrono::milliseconds timeout)
   call(GXUpdateDeviceList, &camera_count, static_cast<std::uint32_t>(timeout.count()));
   return camera_count;
 }
+
+// -----------------------------------------------------------------------------
+// Class Library
+// -----------------------------------------------------------------------------
+
+/// Represents an underlying resourses of the library.
+struct Library final {
+  /// Similar to close().
+  ~Library()
+  {
+    if (!is_refer_)
+      return;
+    else if (refs_ == 1)
+      GXCloseLib();
+
+    refs_--;
+  }
+
+  /**
+   * The constructor.
+   *
+   * @param auto_open If `true` then open() will be called.
+   *
+   * @see open().
+   */
+  explicit Library(const bool auto_open)
+  {
+    if (auto_open)
+      open();
+  }
+
+  /// Non copy-constructible.
+  Library(const Library&) = delete;
+  /// Non copy-assignable.
+  Library& operator=(const Library&) = delete;
+  /// Non move-constructible.
+  Library(Library&&) = delete;
+  /// Non move-assignable.
+  Library& operator=(Library&&) = delete;
+
+  /// @returns `true` if this instance refer to the underlying resources.
+  bool is_refer() const noexcept
+  {
+    return is_refer_;
+  }
+
+  /// @returns `true` the underlying resources is open.
+  bool is_open() const noexcept
+  {
+    return refs_ > 0;
+  }
+
+  /// @returns The current value of the reference counter.
+  static int reference_count() noexcept
+  {
+    return refs_;
+  }
+
+  /**
+   * Increments the reference counter; if its current value is `0` then
+   * opens the underlying resources.
+   *
+   * @remarks Idempotent.
+   */
+  void open()
+  {
+    if (is_refer_)
+      return;
+    else if (!refs_)
+      call(GXInitLib);
+
+    is_refer_ = true;
+    refs_++;
+
+    assert(is_invariant_ok());
+  }
+
+  /**
+   * Decrements the reference counter; if its current value is `1` then
+   * closes the underlying resources.
+   *
+   * @warning Avoid to call this function from handlers registered by
+   * `std::atexit`, `std::at_quick_exit` etc.
+   *
+   * @remarks Idempotent.
+   */
+  void close()
+  {
+    if (!is_refer_)
+      return;
+    else if (refs_ == 1)
+      call(GXCloseLib);
+
+    is_refer_ = false;
+    refs_--;
+
+    assert(is_invariant_ok());
+  }
+
+private:
+  bool is_refer_{};
+  inline static std::atomic_int refs_{};
+
+  bool is_invariant_ok() const noexcept
+  {
+    return (!is_refer_ || refs_);
+  }
+};
 
 // -----------------------------------------------------------------------------
 // Class Device
