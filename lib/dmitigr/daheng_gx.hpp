@@ -96,7 +96,8 @@ inline std::uint32_t update_device_list(const std::chrono::milliseconds timeout)
 // -----------------------------------------------------------------------------
 
 /// Represents an underlying resourses of the library.
-struct Library final {
+class Library final {
+public:
   /// Similar to close().
   ~Library()
   {
