@@ -335,6 +335,36 @@ public:
     return static_cast<GX_TRIGGER_SOURCE_ENTRY>(get_enum(GX_ENUM_TRIGGER_SOURCE));
   }
 
+  void set_trigger_filter_raising(const double value)
+  {
+    set_float(GX_FLOAT_TRIGGER_FILTER_RAISING, value);
+  }
+
+  double trigger_filter_raising() const
+  {
+    return get_float(GX_FLOAT_TRIGGER_FILTER_RAISING);
+  }
+
+  void set_trigger_filter_falling(const double value)
+  {
+    set_float(GX_FLOAT_TRIGGER_FILTER_FALLING, value);
+  }
+
+  double trigger_filter_falling() const
+  {
+    return get_float(GX_FLOAT_TRIGGER_FILTER_FALLING);
+  }
+
+  void set_trigger_delay(const double value)
+  {
+    set_float(GX_FLOAT_TRIGGER_DELAY, value);
+  }
+
+  double trigger_delay() const
+  {
+    return get_float(GX_FLOAT_TRIGGER_DELAY);
+  }
+
   void set_pixel_format(const GX_PIXEL_FORMAT_ENTRY value)
   {
     set_enum(GX_ENUM_PIXEL_FORMAT, value);
