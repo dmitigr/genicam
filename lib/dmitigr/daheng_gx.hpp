@@ -345,6 +345,11 @@ public:
     return get_float(GX_FLOAT_TRIGGER_FILTER_RAISING);
   }
 
+  std::pair<double, double> trigger_filter_raising_range() const
+  {
+    return get_float_range(GX_FLOAT_TRIGGER_FILTER_RAISING);
+  }
+
   void set_trigger_filter_falling(const double value)
   {
     set_float(GX_FLOAT_TRIGGER_FILTER_FALLING, value);
@@ -355,6 +360,11 @@ public:
     return get_float(GX_FLOAT_TRIGGER_FILTER_FALLING);
   }
 
+  std::pair<double, double> trigger_filter_falling_range() const
+  {
+    return get_float_range(GX_FLOAT_TRIGGER_FILTER_FALLING);
+  }
+
   void set_trigger_delay(const double value)
   {
     set_float(GX_FLOAT_TRIGGER_DELAY, value);
@@ -363,6 +373,11 @@ public:
   double trigger_delay() const
   {
     return get_float(GX_FLOAT_TRIGGER_DELAY);
+  }
+
+  std::pair<double, double> trigger_delay_range() const
+  {
+    return get_float_range(GX_FLOAT_TRIGGER_DELAY);
   }
 
   void set_pixel_format(const GX_PIXEL_FORMAT_ENTRY value)
@@ -385,6 +400,11 @@ public:
     return get_float(GX_FLOAT_EXPOSURE_TIME);
   }
 
+  std::pair<double, double> exposure_time_range() const
+  {
+    return get_float_range(GX_FLOAT_EXPOSURE_TIME);
+  }
+
   void set_exposure_delay(const double value)
   {
     set_float(GX_FLOAT_EXPOSURE_DELAY, value);
@@ -393,6 +413,11 @@ public:
   double exposure_delay() const
   {
     return get_float(GX_FLOAT_EXPOSURE_DELAY);
+  }
+
+  std::pair<double, double> exposure_delay_range() const
+  {
+    return get_float_range(GX_FLOAT_EXPOSURE_DELAY);
   }
 
   void set_exposure_mode(const GX_EXPOSURE_MODE_ENTRY value)
@@ -435,6 +460,12 @@ public:
   {
     set_enum(GX_ENUM_GAIN_SELECTOR, channel);
     return get_float(GX_FLOAT_GAIN);
+  }
+
+  std::pair<double, double> gain_range(const GX_GAIN_SELECTOR_ENTRY channel) const
+  {
+    set_enum(GX_ENUM_GAIN_SELECTOR, channel);
+    return get_float_range(GX_FLOAT_GAIN);
   }
 
   void set_balance_ratio(const GX_BALANCE_RATIO_SELECTOR_ENTRY channel, const double value)
@@ -507,6 +538,13 @@ private:
   void set_float(const GX_FEATURE_ID feature, const double value)
   {
     call(GXSetFloat, handle_, feature, value);
+  }
+
+  std::pair<double, double> get_float_range(const GX_FEATURE_ID feature) const
+  {
+    GX_FLOAT_RANGE result{};
+    call(GXGetFloatRange, handle_, feature, &result);
+    return {result.dMin, result.dMax};
   }
 };
 
