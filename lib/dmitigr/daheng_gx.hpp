@@ -480,6 +480,12 @@ public:
     return get_float(GX_FLOAT_BALANCE_RATIO);
   }
 
+  std::pair<double, double> balance_ratio_range(const GX_BALANCE_RATIO_SELECTOR_ENTRY channel) const
+  {
+    set_enum(GX_ENUM_BALANCE_RATIO_SELECTOR, channel);
+    return get_float_range(GX_FLOAT_BALANCE_RATIO);
+  }
+
   /// @}
 
   /// @name Control
