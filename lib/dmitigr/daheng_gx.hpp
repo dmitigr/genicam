@@ -385,6 +385,36 @@ public:
     return get_float(GX_FLOAT_EXPOSURE_TIME);
   }
 
+  void set_exposure_delay(const double value)
+  {
+    set_float(GX_FLOAT_EXPOSURE_DELAY, value);
+  }
+
+  double exposure_delay() const
+  {
+    return get_float(GX_FLOAT_EXPOSURE_DELAY);
+  }
+
+  void set_exposure_mode(const GX_EXPOSURE_MODE_ENTRY value)
+  {
+    set_enum(GX_ENUM_EXPOSURE_MODE, value);
+  }
+
+  GX_EXPOSURE_MODE_ENTRY exposure_mode() const
+  {
+    return static_cast<GX_EXPOSURE_MODE_ENTRY>(get_enum(GX_ENUM_EXPOSURE_MODE));
+  }
+
+  void set_exposure_auto(const GX_EXPOSURE_AUTO_ENTRY value)
+  {
+    set_enum(GX_ENUM_EXPOSURE_AUTO, value);
+  }
+
+  GX_EXPOSURE_AUTO_ENTRY exposure_auto() const
+  {
+    return static_cast<GX_EXPOSURE_AUTO_ENTRY>(get_enum(GX_ENUM_EXPOSURE_AUTO));
+  }
+
   void set_gain_auto(const GX_GAIN_AUTO_ENTRY value)
   {
     set_enum(GX_ENUM_GAIN_AUTO, value);
