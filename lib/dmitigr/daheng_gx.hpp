@@ -212,24 +212,24 @@ struct Frame_data final {
 
   Frame_data() = default;
 
-  Frame_data(GX_FRAME_DATA data)
+  Frame_data(GX_FRAME_DATA data) noexcept
     : data{data}
   {}
 
   Frame_data(const Frame_data&) = delete;
   Frame_data& operator=(const Frame_data&) = delete;
 
-  Frame_data(Frame_data&& rhs)
-    data{rhs.data}
+  Frame_data(Frame_data&& rhs) noexcept
+    : data{rhs.data}
   {
-    rhs.data = nullptr;
+    rhs.data.pImgBuf = nullptr;
   }
 
-  Frame_data& operator=(Frame_data&& rhs)
+  Frame_data& operator=(Frame_data&& rhs) noexcept
   {
     if (this != &rhs) {
       data = rhs.data;
-      rhs.data = nullptr;
+      rhs.data.pImgBuf = nullptr;
     }
     return *this;
   }
