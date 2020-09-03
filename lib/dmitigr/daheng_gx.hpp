@@ -26,6 +26,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cassert>
+#include <cstdlib>
 #include <chrono>
 #include <cstdint>
 #include <memory>
@@ -622,8 +623,20 @@ public:
   Frame_data capture(const std::chrono::milliseconds timeout)
   {
     Frame_data result;
+    result.data.pImgBuf = std::malloc(static_cast<std::size_t>(payload_size()));
     call(GXGetImage, handle_, &result.data, static_cast<std::int32_t>(timeout.count()));
     return result;
+  }
+
+  /// @}
+
+  /// @name Transport layer
+  /// @{
+
+  /// @returns The number of bytes transferred for each image or chunk on the stream channel.
+  std::int64_t payload_size() const
+  {
+    return get_int(GX_INT_PAYLOAD_SIZE);
   }
 
   /// @}
@@ -653,6 +666,18 @@ private:
   void set_float(const GX_FEATURE_ID feature, const double value)
   {
     call(GXSetFloat, handle_, feature, value);
+  }
+
+  std::int64_t get_int(const GX_FEATURE_ID feature) const
+  {
+    std::int64_t result{};
+    call(GXGetInt, handle_, feature, &result);
+    return result;
+  }
+
+  void set_int(const GX_FEATURE_ID feature, const std::int64_t value)
+  {
+    call(GXSetInt, handle_, feature, value);
   }
 
   std::pair<double, double> get_float_range(const GX_FEATURE_ID feature) const
