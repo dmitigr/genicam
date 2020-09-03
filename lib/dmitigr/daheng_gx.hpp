@@ -201,6 +201,43 @@ private:
 };
 
 // -----------------------------------------------------------------------------
+// Struct Frame_data
+// -----------------------------------------------------------------------------
+
+struct Frame_data final {
+  ~Frame_data()
+  {
+    std::free(data.pImgBuf);
+  }
+
+  Frame_data() = default;
+
+  Frame_data(GX_FRAME_DATA data)
+    : data{data}
+  {}
+
+  Frame_data(const Frame_data&) = delete;
+  Frame_data& operator=(const Frame_data&) = delete;
+
+  Frame_data(Frame_data&& rhs)
+    data{rhs.data}
+  {
+    rhs.data = nullptr;
+  }
+
+  Frame_data& operator=(Frame_data&& rhs)
+  {
+    if (this != &rhs) {
+      data = rhs.data;
+      rhs.data = nullptr;
+    }
+    return *this;
+  }
+
+  GX_FRAME_DATA data{};
+};
+
+// -----------------------------------------------------------------------------
 // Class Device
 // -----------------------------------------------------------------------------
 
@@ -315,6 +352,11 @@ public:
   /// @name Settings
   /// @{
 
+  bool is_trigger_mode_implemented() const
+  {
+    return is_implemented(GX_ENUM_TRIGGER_MODE);
+  }
+
   void set_trigger_mode(const GX_TRIGGER_MODE_ENTRY value)
   {
     set_enum(GX_ENUM_TRIGGER_MODE, value);
@@ -325,6 +367,11 @@ public:
     return static_cast<GX_TRIGGER_MODE_ENTRY>(get_enum(GX_ENUM_TRIGGER_MODE));
   }
 
+  bool is_trigger_source_implemented() const
+  {
+    return is_implemented(GX_ENUM_TRIGGER_SOURCE);
+  }
+
   void set_trigger_source(const GX_TRIGGER_SOURCE_ENTRY value)
   {
     set_enum(GX_ENUM_TRIGGER_SOURCE, value);
@@ -333,6 +380,11 @@ public:
   GX_TRIGGER_SOURCE_ENTRY trigger_source() const
   {
     return static_cast<GX_TRIGGER_SOURCE_ENTRY>(get_enum(GX_ENUM_TRIGGER_SOURCE));
+  }
+
+  bool is_trigger_filter_raising_implemented() const
+  {
+    return is_implemented(GX_FLOAT_TRIGGER_FILTER_RAISING);
   }
 
   void set_trigger_filter_raising(const double value)
@@ -350,6 +402,11 @@ public:
     return get_float_range(GX_FLOAT_TRIGGER_FILTER_RAISING);
   }
 
+  bool is_trigger_filter_falling_implemented() const
+  {
+    return is_implemented(GX_FLOAT_TRIGGER_FILTER_FALLING);
+  }
+
   void set_trigger_filter_falling(const double value)
   {
     set_float(GX_FLOAT_TRIGGER_FILTER_FALLING, value);
@@ -363,6 +420,11 @@ public:
   std::pair<double, double> trigger_filter_falling_range() const
   {
     return get_float_range(GX_FLOAT_TRIGGER_FILTER_FALLING);
+  }
+
+  bool is_trigger_delay_implemented() const
+  {
+    return is_implemented(GX_FLOAT_TRIGGER_DELAY);
   }
 
   void set_trigger_delay(const double value)
@@ -380,6 +442,11 @@ public:
     return get_float_range(GX_FLOAT_TRIGGER_DELAY);
   }
 
+  bool is_pixel_format_implemented() const
+  {
+    return is_implemented(GX_ENUM_PIXEL_FORMAT);
+  }
+
   void set_pixel_format(const GX_PIXEL_FORMAT_ENTRY value)
   {
     set_enum(GX_ENUM_PIXEL_FORMAT, value);
@@ -388,6 +455,11 @@ public:
   GX_PIXEL_FORMAT_ENTRY pixel_format() const
   {
     return static_cast<GX_PIXEL_FORMAT_ENTRY>(get_enum(GX_ENUM_PIXEL_FORMAT));
+  }
+
+  bool is_exposure_time_implemented() const
+  {
+    return is_implemented(GX_FLOAT_EXPOSURE_TIME);
   }
 
   void set_exposure_time(const double value)
@@ -405,6 +477,11 @@ public:
     return get_float_range(GX_FLOAT_EXPOSURE_TIME);
   }
 
+  bool is_exposure_delay_implemented() const
+  {
+    return is_implemented(GX_FLOAT_EXPOSURE_DELAY);
+  }
+
   void set_exposure_delay(const double value)
   {
     set_float(GX_FLOAT_EXPOSURE_DELAY, value);
@@ -420,6 +497,11 @@ public:
     return get_float_range(GX_FLOAT_EXPOSURE_DELAY);
   }
 
+  bool is_exposure_mode_implemented() const
+  {
+    return is_implemented(GX_ENUM_EXPOSURE_MODE);
+  }
+
   void set_exposure_mode(const GX_EXPOSURE_MODE_ENTRY value)
   {
     set_enum(GX_ENUM_EXPOSURE_MODE, value);
@@ -428,6 +510,11 @@ public:
   GX_EXPOSURE_MODE_ENTRY exposure_mode() const
   {
     return static_cast<GX_EXPOSURE_MODE_ENTRY>(get_enum(GX_ENUM_EXPOSURE_MODE));
+  }
+
+  bool is_exposure_auto_implemented() const
+  {
+    return is_implemented(GX_ENUM_EXPOSURE_AUTO);
   }
 
   void set_exposure_auto(const GX_EXPOSURE_AUTO_ENTRY value)
@@ -440,6 +527,11 @@ public:
     return static_cast<GX_EXPOSURE_AUTO_ENTRY>(get_enum(GX_ENUM_EXPOSURE_AUTO));
   }
 
+  bool is_gain_auto_implemented() const
+  {
+    return is_implemented(GX_ENUM_GAIN_AUTO);
+  }
+
   void set_gain_auto(const GX_GAIN_AUTO_ENTRY value)
   {
     set_enum(GX_ENUM_GAIN_AUTO, value);
@@ -448,6 +540,11 @@ public:
   GX_GAIN_AUTO_ENTRY gain_auto() const
   {
     return static_cast<GX_GAIN_AUTO_ENTRY>(get_enum(GX_ENUM_GAIN_AUTO));
+  }
+
+  bool is_gain_implemented() const
+  {
+    return is_implemented(GX_FLOAT_GAIN);
   }
 
   void set_gain(const GX_GAIN_SELECTOR_ENTRY channel, const double value)
@@ -466,6 +563,11 @@ public:
   {
     set_enum(GX_ENUM_GAIN_SELECTOR, channel);
     return get_float_range(GX_FLOAT_GAIN);
+  }
+
+  bool is_balance_ratio_implemented() const
+  {
+    return is_implemented(GX_FLOAT_BALANCE_RATIO);
   }
 
   void set_balance_ratio(const GX_BALANCE_RATIO_SELECTOR_ENTRY channel, const double value)
@@ -517,6 +619,13 @@ public:
     call(GXStreamOff, handle_);
   }
 
+  Frame_data capture(const std::chrono::milliseconds timeout)
+  {
+    Frame_data result;
+    call(GXGetImage, handle_, &result.data, static_cast<std::int32_t>(timeout.count()));
+    return result;
+  }
+
   /// @}
 
 private:
@@ -551,6 +660,13 @@ private:
     GX_FLOAT_RANGE result{};
     call(GXGetFloatRange, handle_, feature, &result);
     return {result.dMin, result.dMax};
+  }
+
+  bool is_implemented(const GX_FEATURE_ID feature) const
+  {
+    bool result{};
+    call(GXIsImplemented, handle_, feature, &result);
+    return result;
   }
 };
 
