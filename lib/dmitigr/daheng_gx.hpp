@@ -628,6 +628,11 @@ public:
     return result;
   }
 
+  void trigger_capture()
+  {
+    call(GXSendCommand, handle_, GX_COMMAND_TRIGGER_SOFTWARE);
+  }
+
   /// @}
 
   /// @name Transport layer
