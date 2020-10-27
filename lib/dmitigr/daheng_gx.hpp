@@ -350,6 +350,26 @@ public:
       return true;
   }
 
+  /// @name Device information
+  /// @{
+
+  bool is_device_link_throughput_limit_mode_implemented() const
+  {
+    return is_implemented(GX_ENUM_DEVICE_LINK_THROUGHPUT_LIMIT_MODE);
+  }
+
+  void set_device_link_throughput_limit_mode(const GX_DEVICE_LINK_THROUGHPUT_LIMIT_MODE_ENTRY value)
+  {
+    set_enum(GX_ENUM_DEVICE_LINK_THROUGHPUT_LIMIT_MODE, value);
+  }
+
+  auto device_link_throughput_limit_mode() const
+  {
+    return static_cast<GX_DEVICE_LINK_THROUGHPUT_LIMIT_MODE_ENTRY>(get_enum(GX_ENUM_DEVICE_LINK_THROUGHPUT_LIMIT_MODE));
+  }
+
+  /// @}
+
   /// @name Image format
   /// @{
 
