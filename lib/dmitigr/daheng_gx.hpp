@@ -383,6 +383,21 @@ public:
     return static_cast<GX_TRIGGER_SOURCE_ENTRY>(get_enum(GX_ENUM_TRIGGER_SOURCE));
   }
 
+  bool is_external_trigger_switch_implemented() const
+  {
+    return is_implemented(GX_ENUM_TRIGGER_SWITCH);
+  }
+
+  void set_external_trigger_switch(const GX_TRIGGER_SWITCH_ENTRY value)
+  {
+    set_enum(GX_ENUM_TRIGGER_SWITCH, value);
+  }
+
+  GX_TRIGGER_SWITCH_ENTRY external_trigger_switch() const
+  {
+    return static_cast<GX_TRIGGER_SWITCH_ENTRY>(get_enum(GX_ENUM_TRIGGER_SWITCH));
+  }
+
   bool is_trigger_filter_raising_implemented() const
   {
     return is_implemented(GX_FLOAT_TRIGGER_FILTER_RAISING);
