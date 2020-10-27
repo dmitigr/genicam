@@ -350,7 +350,38 @@ public:
       return true;
   }
 
-  /// @name Settings
+  /// @name Image format
+  /// @{
+
+  bool is_pixel_format_implemented() const
+  {
+    return is_implemented(GX_ENUM_PIXEL_FORMAT);
+  }
+
+  void set_pixel_format(const GX_PIXEL_FORMAT_ENTRY value)
+  {
+    set_enum(GX_ENUM_PIXEL_FORMAT, value);
+  }
+
+  GX_PIXEL_FORMAT_ENTRY pixel_format() const
+  {
+    return static_cast<GX_PIXEL_FORMAT_ENTRY>(get_enum(GX_ENUM_PIXEL_FORMAT));
+  }
+
+  /// @}
+
+  /// @name Transport layer
+  /// @{
+
+  /// @returns The number of bytes transferred for each image or chunk on the stream channel.
+  std::int64_t payload_size() const
+  {
+    return get_int(GX_INT_PAYLOAD_SIZE);
+  }
+
+  /// @}
+
+  /// @name Acquisition trigger
   /// @{
 
   bool is_trigger_mode_implemented() const
@@ -458,21 +489,6 @@ public:
     return get_float_range(GX_FLOAT_TRIGGER_DELAY);
   }
 
-  bool is_pixel_format_implemented() const
-  {
-    return is_implemented(GX_ENUM_PIXEL_FORMAT);
-  }
-
-  void set_pixel_format(const GX_PIXEL_FORMAT_ENTRY value)
-  {
-    set_enum(GX_ENUM_PIXEL_FORMAT, value);
-  }
-
-  GX_PIXEL_FORMAT_ENTRY pixel_format() const
-  {
-    return static_cast<GX_PIXEL_FORMAT_ENTRY>(get_enum(GX_ENUM_PIXEL_FORMAT));
-  }
-
   bool is_exposure_time_implemented() const
   {
     return is_implemented(GX_FLOAT_EXPOSURE_TIME);
@@ -542,6 +558,11 @@ public:
   {
     return static_cast<GX_EXPOSURE_AUTO_ENTRY>(get_enum(GX_ENUM_EXPOSURE_AUTO));
   }
+
+  /// @}
+
+  /// @name Analog controls
+  /// @{
 
   bool is_gain_auto_implemented() const
   {
@@ -646,17 +667,6 @@ public:
   void trigger_capture()
   {
     call(GXSendCommand, handle_, GX_COMMAND_TRIGGER_SOFTWARE);
-  }
-
-  /// @}
-
-  /// @name Transport layer
-  /// @{
-
-  /// @returns The number of bytes transferred for each image or chunk on the stream channel.
-  std::int64_t payload_size() const
-  {
-    return get_int(GX_INT_PAYLOAD_SIZE);
   }
 
   /// @}
