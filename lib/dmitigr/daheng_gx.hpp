@@ -31,14 +31,51 @@
 #include <cstdint>
 #include <memory>
 #include <new>
-#include <stdexcept>
 #include <string>
+#include <system_error>
 #include <utility>
 
 #ifndef DMITIGR_GENICAM_DAHENG_GX_HPP
 #define DMITIGR_GENICAM_DAHENG_GX_HPP
 
 namespace dmitigr::genicam::daheng::gx {
+
+// -----------------------------------------------------------------------------
+// Exceptions
+// -----------------------------------------------------------------------------
+
+/// A category of runtime errors.
+class Error_category final : public std::error_category {
+public:
+  /// @returns The literal `dmitigr_genicam_daheng_gx_error`.
+  const char* name() const noexcept override
+  {
+    return "dmitigr_genicam_daheng_gx_error";
+  }
+
+  /// @returns The string that describes the error condition denoted by `ev`.
+  std::string message(const int ev) const override
+  {
+    return std::string{name()}.append(" ").append(std::to_string(ev));
+  }
+};
+
+/// The instance of type Error_category.
+inline Error_category error_category;
+
+/// An exception.
+class Exception final : public std::system_error {
+public:
+  /// The constructor.
+  explicit Exception(const int ev)
+    : system_error{ev, error_category}
+  {}
+
+  /// @overload
+  Exception(const int ev, const std::string& what)
+    : system_error{ev, error_category, what}
+  {}
+};
 
 // -----------------------------------------------------------------------------
 // Basics
@@ -55,12 +92,12 @@ inline std::pair<GX_STATUS, std::string> get_last_error()
     s == GX_STATUS_SUCCESS)
     str.resize(str_size);
   else
-    throw std::runtime_error{"GXGetLastError()"};
+    throw Exception{s, "GXGetLastError()"};
 
   // Asking for string.
   if (const auto s = GXGetLastError(&code, str.data(), &str_size);
     s != GX_STATUS_SUCCESS)
-    throw std::runtime_error{"GXGetLastError()"};
+    throw Exception{s, "GXGetLastError()"};
 
   return {code, str};
 }
@@ -69,7 +106,7 @@ inline void throw_if_last_error()
 {
   const auto [code, str] = get_last_error();
   if (code != GX_STATUS_SUCCESS)
-    throw std::runtime_error{str};
+    throw Exception{code, str};
 }
 
 template<typename F, typename ... Types>
