@@ -371,6 +371,20 @@ public:
   }
 
   /**
+   * @brief Restores the device to the initial state and the device is powered
+   * on again.
+   *
+   * After the call is completed, the host will lose its connection to the device.
+   * And because the interface can be set only when the device is open, the device
+   * will be closed in order to release the corresponding memory resources.
+   */
+  void reset()
+  {
+    call(GXSendCommand, handle_, GX_COMMAND_DEVICE_RESET);
+    close();
+  }
+
+  /**
    * Closes the device.
    *
    * @returns `true` on success, or `false` otherwise.
