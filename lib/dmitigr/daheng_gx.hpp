@@ -742,6 +742,11 @@ public:
     call(GXSendCommand, handle_, GX_COMMAND_TRIGGER_SOFTWARE);
   }
 
+  void flush_queue()
+  {
+    call(GXFlushQueue, handle_);
+  }
+
   /// @}
 
 private:
