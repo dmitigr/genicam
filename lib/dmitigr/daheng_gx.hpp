@@ -364,8 +364,8 @@ public:
   /// Closes the device.
   void close()
   {
-    GXStreamOff(handle_);
-    GXUnregisterCaptureCallback(handle_);
+    call(GXStreamOff, handle_);
+    call(GXUnregisterCaptureCallback, handle_);
     call(GXCloseDevice, handle_);
     handle_ = {};
   }
@@ -380,8 +380,10 @@ public:
    */
   void reset()
   {
+    /// Caution! Don't call close() after sending the reset, since GXStreamOff() will fail!
     call(GXSendCommand, handle_, GX_COMMAND_DEVICE_RESET);
-    close();
+    call(GXCloseDevice, handle_);
+    handle_ = {};
   }
 
   /**
