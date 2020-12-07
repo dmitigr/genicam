@@ -421,6 +421,68 @@ public:
     return static_cast<GX_DEVICE_LINK_THROUGHPUT_LIMIT_MODE_ENTRY>(get_enum(GX_ENUM_DEVICE_LINK_THROUGHPUT_LIMIT_MODE));
   }
 
+  bool is_timestamp_tick_frequency_implemented() const
+  {
+    return is_implemented(GX_INT_TIMESTAMP_TICK_FREQUENCY);
+  }
+
+  int timestamp_tick_frequency() const
+  {
+    return get_int(GX_INT_TIMESTAMP_TICK_FREQUENCY);
+  }
+
+  bool is_timestamp_latch_value_implemented() const
+  {
+    return is_implemented(GX_INT_TIMESTAMP_LATCH_VALUE);
+  }
+
+  int timestamp_latch_value() const
+  {
+    return get_int(GX_INT_TIMESTAMP_LATCH_VALUE);
+  }
+
+  bool is_latch_timestamp_implemented() const
+  {
+    return is_implemented(GX_COMMAND_TIMESTAMP_LATCH);
+  }
+
+  /**
+   * Latchs the current timestamp value, that is, the time value taken from the
+   * start of the device power-on to the call of the timestamp latch command. The
+   * time value needs to be read through the `timestamp_latch_value()`.
+   *
+   * @see timestamp_latch_value().
+   */
+  void latch_timestamp()
+  {
+    call(GXSendCommand, handle_, GX_COMMAND_TIMESTAMP_LATCH);
+  }
+
+  bool is_reset_timestamp_implemented() const
+  {
+    return is_implemented(GX_COMMAND_TIMESTAMP_RESET);
+  }
+
+  /// Resets the timestamp counter and recount from zero.
+  void reset_timestamp()
+  {
+    call(GXSendCommand, handle_, GX_COMMAND_TIMESTAMP_RESET);
+  }
+
+  bool is_latch_reset_timestamp_implemented() const
+  {
+    return is_implemented(GX_COMMAND_TIMESTAMP_LATCH_RESET);
+  }
+
+  /**
+   * First latchs the current timestamp value, then resets the timestamp
+   * counter and recounts from zero.
+   */
+  void latch_reset_timestamp()
+  {
+    call(GXSendCommand, handle_, GX_COMMAND_TIMESTAMP_LATCH_RESET);
+  }
+
   /// @}
 
   /// @name Image format
@@ -696,6 +758,25 @@ public:
   {
     set_enum(GX_ENUM_BALANCE_RATIO_SELECTOR, channel);
     return get_float_range(GX_FLOAT_BALANCE_RATIO);
+  }
+
+  /// @}
+
+  /// @name Flow layer (DataStream feature)
+
+  bool is_stream_transfer_size_implemented() const
+  {
+    return is_implemented(GX_DS_INT_STREAM_TRANSFER_SIZE);
+  }
+
+  void set_stream_transfer_size(const std::int64_t value)
+  {
+    set_int(GX_DS_INT_STREAM_TRANSFER_SIZE, value);
+  }
+
+  std::int64_t stream_transfer_size()
+  {
+    return get_int(GX_DS_INT_STREAM_TRANSFER_SIZE);
   }
 
   /// @}
