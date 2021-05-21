@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// Copyright (C) 2020 Dmitry Igrishin
+// Copyright (C) 2021 Dmitry Igrishin
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -25,12 +25,12 @@
 
 #include <algorithm>
 #include <atomic>
-#include <cassert>
 #include <cstdlib>
 #include <chrono>
 #include <cstdint>
 #include <memory>
 #include <new>
+#include <stdexcept>
 #include <string>
 #include <system_error>
 #include <utility>
@@ -117,15 +117,196 @@ inline auto call(F&& f, Types&& ... args)
   return result;
 }
 
+/**
+ * Convenient wrapper around GX_OPEN_PARAM
+ *
+ * Possible values of GX_ACCESS_MODE are:
+ *   -# GX_ACCESS_READONLY;
+ *   -# GX_ACCESS_CONTROL;
+ *   -# GX_ACCESS_EXCLUSIVE.
+ */
+class Open_param final {
+public:
+  /// Default-constructible. (Constructs an instance with empty content.)
+  Open_param() = default;
+
+  /**
+   * The generic constructor.
+   *
+   * Please note, that this class is also provides convenient named constructors.
+   *
+   * @param content Could be and IP address, a serial number and so on.
+   * @param om Device open mode. Possible values are:
+   *   -# GX_OPEN_SN;
+   *   -# GX_OPEN_IP;
+   *   -# GX_OPEN_MAC;
+   *   -# GX_OPEN_INDEX;
+   *   -# GX_OPEN_USERID.
+   * @param am Access mode. (See Open_param for possible values.)
+   *
+   * @see by_sn(), by_ip(), by_mac(), by_index(), by_userid().
+   */
+  Open_param(std::string content, const GX_OPEN_MODE om, const GX_ACCESS_MODE am)
+    : content_{std::move(content)}
+    , handle_{content_.data(), om, am}
+  {};
+
+  /// Copy-constructible.
+  Open_param(const Open_param& rhs)
+    : content_{rhs.content_}
+    , handle_{content_.data(), rhs.handle_.openMode, rhs.handle_.accessMode}
+  {}
+
+  /// Copy-assignable.
+  Open_param& operator=(const Open_param& rhs)
+  {
+    if (this != &rhs) {
+      Open_param tmp{rhs};
+      swap(tmp);
+    }
+    return *this;
+  }
+
+  /// Move-constructible.
+  Open_param(Open_param&& rhs) noexcept
+  {
+    Open_param new_this;
+    rhs.swap(new_this); // reset rhs to the default state
+    swap(new_this);
+  }
+
+  /// Move-assignable.
+  Open_param& operator=(Open_param&& rhs) noexcept
+  {
+    if (this != &rhs) {
+      Open_param tmp{rhs};
+      swap(tmp);
+    }
+    return *this;
+  }
+
+  /// Swaps `*this` and `other`.
+  void swap(Open_param& other) noexcept
+  {
+    using std::swap;
+    swap(content_, other.content_);
+    handle_.pszContent = content_.data();
+    other.handle_.pszContent = other.content_.data();
+    swap(handle_.openMode, other.handle_.openMode);
+    swap(handle_.accessMode, other.handle_.accessMode);
+  }
+
+  /**
+   * @param ip A serial number of the device to open.
+   * @param am An access mode of the device to open.
+   *
+   * @par Requires
+   * `!sn.empty()`.
+   */
+  static Open_param by_sn(const std::string& sn, const GX_ACCESS_MODE am)
+  {
+    if (sn.empty())
+      throw std::invalid_argument("invalid camera serial number");
+    return {sn, GX_OPEN_SN, am};
+  }
+
+  /**
+   * @param ip An IP address of the device to open.
+   * @param am An access mode of the device to open.
+   *
+   * @par Requires
+   * `!ip.empty()`.
+   */
+  static Open_param by_ip(const std::string& ip, const GX_ACCESS_MODE am)
+  {
+    if (ip.empty())
+      throw std::invalid_argument("invalid camera IP address");
+    return {ip, GX_OPEN_IP, am};
+  }
+
+  /**
+   * @param mac A MAC address of the device to open.
+   * @param am An access mode of the device to open.
+   *
+   * @par Requires
+   * `!mac.empty()`.
+   */
+  static Open_param by_mac(const std::string& mac, const GX_ACCESS_MODE am)
+  {
+    if (mac.empty())
+      throw std::invalid_argument("invalid camera MAC address");
+    return {mac, GX_OPEN_MAC, am};
+  }
+
+  /**
+   * @param index An index of the device to open. (Indexes starts from 1.)
+   * @param am An access mode of the device to open.
+   *
+   * @par Requires
+   * `index > 0`.
+   */
+  static Open_param by_index(const int index, const GX_ACCESS_MODE am)
+  {
+    if (!(index > 0))
+      throw std::invalid_argument("invalid camera index");
+    return {std::to_string(index), GX_OPEN_INDEX, am};
+  }
+
+  /**
+   * @param userid An user ID of the device to open.
+   * @param am An access mode of the device to open.
+   *
+   * @par Requires
+   * `!userid.empty()`.
+   */
+  static Open_param by_userid(const std::string& userid, const GX_ACCESS_MODE am)
+  {
+    if (userid.empty())
+      throw std::invalid_argument("invalid camera user ID");
+    return {userid, GX_OPEN_USERID, am};
+  }
+
+  /// @returns An underlying content (which could be an SN, IP, MAC, index or user ID).
+  const std::string& content() const noexcept
+  {
+    return content_;
+  }
+
+  /// @returns An open mode.
+  GX_OPEN_MODE open_mode() const noexcept
+  {
+    return static_cast<GX_OPEN_MODE>(handle_.openMode);
+  }
+
+  /// @returns An access mode.
+  GX_ACCESS_MODE access_mode() const noexcept
+  {
+    return static_cast<GX_ACCESS_MODE>(handle_.accessMode);
+  }
+
+private:
+  friend class Device;
+  std::string content_;
+  mutable GX_OPEN_PARAM handle_{};
+};
+
 // -----------------------------------------------------------------------------
 // Free functions
 // -----------------------------------------------------------------------------
 
-/// @returns The number of devices.
+/// @returns The number of devices enumerated in a subnet.
 inline std::uint32_t update_device_list(const std::chrono::milliseconds timeout)
 {
   std::uint32_t camera_count{};
   call(GXUpdateDeviceList, &camera_count, static_cast<std::uint32_t>(timeout.count()));
+  return camera_count;
+}
+
+/// @returns The number of devices enumerated in an entire network.
+inline std::uint32_t update_all_device_list(const std::chrono::milliseconds timeout)
+{
+  std::uint32_t camera_count{};
+  call(GXUpdateAllDeviceList, &camera_count, static_cast<std::uint32_t>(timeout.count()));
   return camera_count;
 }
 
@@ -203,7 +384,8 @@ public:
     is_refer_ = true;
     refs_++;
 
-    assert(is_invariant_ok());
+    if (!is_invariant_ok())
+      throw std::logic_error{"bug"};
   }
 
   /**
@@ -225,7 +407,8 @@ public:
     is_refer_ = false;
     refs_--;
 
-    assert(is_invariant_ok());
+    if (!is_invariant_ok())
+      throw std::logic_error{"bug"};
   }
 
 private:
@@ -334,6 +517,11 @@ public:
   {
     call(GXOpenDevice, open_param, &handle_);
   }
+
+  /// @overload
+  explicit Device(const Open_param& open_param)
+    : Device{&open_param.handle_}
+  {}
 
   /// @returns The underlying handle.
   GX_DEV_HANDLE handle() noexcept
