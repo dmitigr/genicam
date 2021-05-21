@@ -266,6 +266,13 @@ public:
     return {userid, GX_OPEN_USERID, am};
   }
 
+  /// @returns A device index if `open_mode() == GX_OPEN_INDEX`, or `0` otherwise.
+  std::uint32_t index() const noexcept
+  {
+    return open_mode() == GX_OPEN_INDEX ?
+      static_cast<std::uint32_t>(std::stoul(content_)) : 0u;
+  }
+
   /// @returns An underlying content (which could be an SN, IP, MAC, index or user ID).
   const std::string& content() const noexcept
   {
